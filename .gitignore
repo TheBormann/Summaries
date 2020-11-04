@@ -1,2 +1,5 @@
 # ignore Dataset in Keras
-/Machine learning models/Deep learning in python/Keras/Dataset/
+/Machine learning models/Deep learning in python/Keras/Dataset/*.csv
+
+# ignore dataset in Fundamentals
+/Machine learning models/Deep learning in python/Fundamentals/Dataset/*.csv

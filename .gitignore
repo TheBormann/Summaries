@@ -3,3 +3,4 @@
 
 # ignore dataset in Fundamentals
 /Machine learning models/Deep learning in python/Fundamentals/Dataset/*.csv
+/Machine learning models/Deep learning in python/Fundamentals/Dataset/*.txt

@@ -13,13 +13,14 @@ massive data scraping
  6. Engine sends response from Downloader to spider passing through the spider Middleware
  7. Spider processes the response and sends it back to the engine passing through the spider middleware
  8. Engine sends processed items to item pipelines, sends request to scheduler and asks for next request.
-    In the Item pipelines, items are processed and saved in a db
-    
+    In the Item pipelines, items are processed and saved in a database
+
  [more information](https://docs.scrapy.org/en/latest/topics/architecture.html)
- 
+
  ## Create a new Scrapy project
-First we need to install the library, we will be using the Anaconda packet manager for that:\
+First we need to install the library, we will be using the Anaconda packet manager for that:
 (If terminal doesn't find the conda command, add the Anaconda/Scripts folder to environment variables)
+
 ```
 conda env create --name environment --file=environment.yml
 
@@ -29,7 +30,12 @@ conda env update -f environment.yml -n environment
 # switch to the environment
 conda activate environment_name
 ```
+Another way would be to create a docker container and install the dependencies in the container.
+
+[more information](../Version Management/Docker.md)
+
 Now create a new Scrapy project
+
 ```
 scrapy startproject project_name
 ```
@@ -52,7 +58,7 @@ you can create an spider by simply adding a new python file in the spider folder
 scrapy genspider name website
 ```
 The Spider should look something like this:
-```
+```python
 import scrapy
 
 class countryIndices(scrapy.Spider):
@@ -74,7 +80,7 @@ Why do you need to know about Scrapy items?
 * It is fast when handling with large data
 
 To create an item, open the items.py file and add a new class like this:
-```
+```python
 class ItemName(scrapy.Item):
     # define the fields for your item here like:
     name = scrapy.Field()
@@ -89,7 +95,7 @@ Later we will call our spider from another script. This is possible with this co
 
 Now we got our Item "shell" which must be populated with scraped data. To do this, we need to update our
 parse method in our Spider:
-```
+```python
 def parse(self, response):
     # create an Itemloader, which uses the item class
     loader = ItemLoader(item=ItemName(), selector=ElementToScrape)
@@ -108,7 +114,7 @@ After fitting the data into the item we can manipulate the data further with pip
 * storing scraped data
 
 1. Go to the settings.py and add a pipeline (The number describes the order of the pipelines, small comes earlier and max 1000)
-    ```
+    ```python
     # Configure item pipelines
     # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
     ITEM_PIPELINES = {
@@ -116,7 +122,7 @@ After fitting the data into the item we can manipulate the data further with pip
     }
     ```
 2. Now we can add a new pipeline in the pipelines.py file:
-```
+```python
 class PipelineName(object):
     def process_item(self, item, spider):
        item["col"] = item["col"] + 2
@@ -124,18 +130,20 @@ class PipelineName(object):
         return item 
 ```
 This Pipeline adds 2 to every element in the column "col". This is a pretty simple
-example, more complicated is, to save your data to an sql database.
-(To use the SQL-connector, "SQLAlchemy>=1.3.6" must be added to the environment)
+example.
 
 ### Save items to SQL
+
+(To use the SQL-connector, "SQLAlchemy>=1.3.6" must be added to the environment)
+
 1. Add link to the sqlite db in to settings.py
-    ```
+    ```python
     # SQLite
     CONNECTION_STRING = 'sqlite:///relative/link/data.db'   
     ```
 2. Add a models.py in the folder with pipelines.py, in there we are defining how to connect to the db and with tables 
 should be created:
-    ```
+    ```python
     from sqlalchemy import create_engine, Column, Table, ForeignKey, MetaData
     from sqlalchemy.orm import relationship
     from sqlalchemy.ext.declarative import declarative_base
@@ -144,30 +152,38 @@ should be created:
     from scrapy.utils.project import get_project_settings
     
     Base = declarative_base()
+    ```
 
 
-    def db_connect():
-        """
-        Performs database connection using database settings from settings.py.
-        Returns sqlalchemy engine instance
-        """
-    return create_engine(get_project_settings().get("CONNECTION_STRING"))
+```python
+def db_connect():
+    """
+    Performs database connection using database settings from settings.py.
+    Returns sqlalchemy engine instance
+    """
+return create_engine(get_project_settings().get("CONNECTION_STRING"))
+```
 
 
-    def create_table(engine):
-        Base.metadata.create_all(engine)
+```python
+def create_table(engine):
+    Base.metadata.create_all(engine)
+```
 
    
-    class table1(Base):
-        __tablename__ = "table1"
 
-    col1 = Column(String, primary_key=True)
-    col2 = Column(String)
-    col3 = Column(Float)
-    ```
+~~~python
+class table1(Base):
+    __tablename__ = "table1"
+
+col1 = Column(String, primary_key=True)
+col2 = Column(String)
+col3 = Column(Float)
+```
+~~~
 3. Now we can define how to save each item in the table, this is done though the pipelines, so we need to update
 pipelines.py:
-    ```
+    ```python
     class StockindicesPipeline(object):
 
     def __init__(self):
@@ -227,13 +243,13 @@ my_project/
                 mySpider.py     # Contains the QuotesSpider class
 ```
 The main file:
-```
+```python
 from scraper.run_scraper import Scraper
 scraper = Scraper()
 scraper.run_spiders()
 ```
 run_scraper.py file:
-```
+```python
 from scraper.scraper.spiders.mySpider import mySpider
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
@@ -252,7 +268,7 @@ class Scraper:
         self.process.start()  # the script will block here until the crawling is finished
 ```
 And at last, we need to update the settings.py:
-```
+```python
 SPIDER_MODULES = ['scraper.scraper.spiders']
 NEWSPIDER_MODULE = 'scraper.scraper.spiders'
 ```
@@ -264,9 +280,8 @@ program our framework will be executed!
 ## How to run your scraper periodically
 * When using the normal Scrapy Framework:
     Scrapyd is the best option
-* When using the modified Framework, to be callable from Script:
+* When using the modified Framework, which is callable from Script:
     **Cron** on linux and **schtasks** for windows
-    
 # Dynamic Web scraping
 This is needed, the data you want to scrape is hidden behind java script functionality, or when the website is completely
 based on javascript. In these cases it is necessary to simulate the button presses to trigger the js script.
@@ -278,7 +293,7 @@ Because Scarpy can't handle simulating clicks or js scripts it needs help from t
 To use Selenium in Scrapy simply call Selenium methods in the Scrapy spider:
 
 Import the Selenium library in your spider
-```
+```python
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
@@ -286,7 +301,7 @@ from scrapy.selector import Selector
 from selenium import webdriver
 ```
 and use Selenium as usually in the spiders parse function
-```
+```python
 basedir = os.path.dirname(os.path.realpath('__file__'))
 
  def parse(self, response):
@@ -319,17 +334,18 @@ basedir = os.path.dirname(os.path.realpath('__file__'))
 ## Scrapy middleware
 Spider middleware are "hooks" that process response and request.
 You need middleware if you need to
+
 * post-process output of spider callbacks - change/add/remove requests or items
 * post-process start_requests
 * handle spider exceptions
 To use Scrapy middleware we need to update the settings.py
-```
+```python
 SPIDER_MIDDLEWARES = {
     'myproject.middlewares.CustomSpiderMiddleware': 543,
 }
 ```
 Now you need to create a middleware class with specific methods:
-```
+```python
 class CustomSpiderMiddleware(object):
     def process_spider_input(response, spider):
         pass
@@ -355,7 +371,7 @@ browser. To prevent this we can use Scrapy's User-Agent:
 1. add scrapy-user-agents to the python environment (not available in anaconda, use pip)
 2. comment the USER_AGENT variable in settings.py out
 3. Add the following code to the other middleware in the settings file
-    ```
+    ```python
     DOWNLOADER_MIDDLEWARES = {
     'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
     'scrapy_user_agents.middlewares.RandomUserAgentMiddleware': 400,
@@ -368,9 +384,10 @@ https://github.com/aivarsk/scrapy-proxies
 
 ## Scrapy without framework
 It is possible to run Scrapy without the actual Scrapy framework. This allows you to run the web-crawler from within another 
-script.\
+script.
 To do this you need to create a CrawlProcess and pass it the spider class. 
-```
+
+```python
 import scrapy
 from scrapy.crawler import CrawlerProcess
 
@@ -427,7 +444,7 @@ To use Scrapyd we need to do the following steps:
     url = http://localhost:6800/
     project = myproject
     ```
-5. Deploy spider (local referes to the deploy:local section above)
+5. Deploy spider (local refers to the deploy:local section above)
     ```
      scrapyd-deploy local
     ```
@@ -435,7 +452,7 @@ To use Scrapyd we need to do the following steps:
     ```
     curl https://localhost:6800/schedule.json -d project=myproject -d spider=myspider
     ```
-7. Stop spider (Job-id is accessabel under the jobs tab on the localhost website)
+7. Stop spider (Job-id is accessible under the jobs tab on the localhost website)
     ```
     curl http://localhost:6800/cancel.json -d project=myproject -d job=myjobid
     ```
@@ -443,7 +460,7 @@ Other endpoints that can be changed, can be found here:
 https://scrapyd.readthedocs.io/en/latest/api.html
 
 ## Good to know
-* When website blocks scraping, you can change the USER-AGENT in the settings like this and often it helps
+* When website blocks scraping, you can change the USER-AGENT in the settings like this
     ```
     USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.101 Safari/537.36'
     ```
@@ -461,7 +478,7 @@ https://scrapyd.readthedocs.io/en/latest/api.html
     conda env export --no-builds | findstr -v "prefix" > environment.yml
     ```
     **It is very important to export the file in UTF-8 format!**
- 
+
 ## Resources
 * https://towardsdatascience.com/a-minimalist-end-to-end-scrapy-tutorial-part-i-11e350bcdec0
 * https://docs.scrapy.org/en/latest/

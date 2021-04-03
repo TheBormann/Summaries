@@ -1,7 +1,12 @@
+
+
 # Docker
+
 Docker is a tool, that creates containers (You can imagine it as a virtual environment, but it really isn't), where you can develop and build applications.
 Because you install and configure everything inside the container, you can ship this container to any other machine and 
 it will perform exactly like on the previous machine.  
+
+[Install Docker](https://docs.docker.com/engine/install/#desktop)
 
 If you should use a VM or Docker to guaranty consistency, depends on the use cases. Try both out or decide with the following 
 advantages and disadvantages:
@@ -9,97 +14,148 @@ advantages and disadvantages:
 ## Advantages
 1. **Reproducibility**: A Docker container will run the same on every operating system
 2. **Isolation**: Installations or changes of libraries will only affect the inside of the container
-3. **Security**: By separating Applications into different containers, will only the compromised container have a problem
 4. **Docker Hub**: allows you to save images in the cloud
 5. **Environment management**: You can build different environment for the same application (development, testing, production)
 6. **Continuous Integration** You can automatically update your docker img with tools like Travis, Jenkins or Wercker
-
-## When to use Docker
-1. Learning new Technologies
-2. Basic use cases
-3. App isolation
-4. Developer teams
 
 ## When NOT to use Docker
 1. Your app is complicated and you are not/do not have a sysadmin
 2. Performance is critical to your application
 3. You don’t want upgrade hassles
-4. Security is critical to your application (Even though Docker solves some security problems, they create new ones)
-5. Multiple operating systems (Docker containers share the host computers operating system, if oyu want to run the same project on a different
+4. **Security is critical to your application** (Even though Docker solves some security problems, they create new ones)
+5. **Multiple operating systems** (Docker containers share the host computers operating system, if you want to run the same project on a different
     system, you need to switch to a virtual machine)
-6. Clusters (When running Docker projects in cluster it can get complicated and you need to find a work around) 
+6. **Clusters** (When running Docker projects in cluster it can get complicated and you need to find a work around) 
+
+## Security Issue
+
+1. **Unsecured communication and unrestricted network traffic**
+   In some versions of Docker, all network traffic is allowed between containers in the same host.
+   Developers should only allow intercommunication that is necessary by linking specific containers.
+   In addition communication with Docker registries should be encrypted through TLS security protocol
+2. **Unrestricted access of Process and files**
+   An attacker that gains access to one container may have the capability to gain access to other containers or the host. (via remouting)
+   To avoid this, the user namespace feature in Linux containers will allow developers to avoid root access by giving isolated containers separate user accounts, and mandate resource constrains, so users from one container do not have the capability to access other containers or their resources.
+   This feature is not enabled by default
+3. **Kernel level threats**
+   All containers share the same kernel and the host.
+   This means the host should be updated and hardened to reduce kernel threats.
+   In addition, only necessary privileged ports should be accessible trough a container
+4. **Inconsistent update and patching of docker containers**
+5. **Unverified docker images**
+
+
 
 ## Process of a Docker project
 1. Dockerfile:
     This text file stores all commands that are necessary to create the image
-
 2. Image:
     The image contains the whole environment and applications. These are saved and can be shipped to others.
-    When you want to use the img, you can build with that image the container, where everything will be run.
-    
+    When you want to use the image, you can build with that image the container, where everything will be run.
 3. Container:
     The container is the actual running "environment", that runs the applications
 
+## Commands
 
-## Example project
-Even though docker containers are available for linux and windows, we will use Linux (Ubuntu to be exact) to create an container
+### Build
 
-###  [Install Docker](https://docs.docker.com/engine/install/#desktop)
-After installing Docker correctly, you can check if it's working with the following command:
-```
-docker run hello-world
-```
-This will download an example docker file and the program in that file will print "Hello from Docker." in the terminal 
-when it's working correctly.
+Build from dockerfile
 
-### Now you can check docker-hub for specific containers to build your product onto or create a new container
-1. Load container from docker-hub
-    (If Docker doesn't has admin privileges right away you can add sudo to get permission you need)
-    ```
-    docker pull tensorflow/tensorflow
-    ```
-2. To create a Docker container we need to write a Dockerfile, which describes how to build the filesystem in the container, 
-what metadata is needed and how to run the container.
-How to write one will be covered later.  
-If you have your Dockerfile, navigate to your working dir with the Dockerfile and create the image with the command
-    ```
-    docker build --tag container_name:1.0 .
-    ```
-3. Delete container
-    ```
-    docker rm --force bb
-    ```
+```
+docker build -t myimgae:1.0 .
+```
 
-### Run the container
+list all images that are locally stored
+
 ```
-docker run -it --rm tensorflow/tensorflow bash
+docker image ls
 ```
+
+delete an image from local image store
+
+```
+docker image rm myImage
+```
+
+### Share
+
+Pull an image
+
+```
+docker pull myimage:1.0
+```
+
+Retag a local image with new image name and tag
+
+```
+docker tag myimage:1.0 myrepo myimage:2.0
+```
+
+Push an image to a registry
+
+```
+docker push myrepo/myimage:2.0
+```
+
+### Run
+
 Note that there are multiple parameters that can be set for the run method, most important ones are:
+
+* ``-a`` will connect the container to your terminal
+
 * ``-d`` will detach the container from your terminal
-* ``-p`` will assign container ports to random host ports
+* ``-p`` will assign container ports to specific ports
 * ``-e`` will change environment variables
 * ``--name`` will define the container name
 * ``AUTHOR`` is an environment variable
 
+Run a container from an image (if the image not available locally, docker searches for it on docker hub)
 
-To see on which ports an container is running use:
 ```
-docker port static-siteS
+docker container run --name nameOfContainer -p 8888:8888 imageName
 ```
 
-### Stop container
-1. See running containers
-    ```
-    docker ps
-    ```
-2. stop the container
-    ```
-     docker stop docker_id
-    ```
-3. Additional you can remove the container as well
-    ```
-     docker rm docker_id
-    ```
+List the running containers (add --all to include stopped containers)
+
+```
+docker container ls
+```
+
+Print the last 100 lines of a container’s logs
+
+```
+docker container logs --tail 100 nameOfContainer
+```
+
+Stop a running container through SIGTERM
+
+```
+docker container stop nameOfContainer
+```
+
+Stop a running container through SIGKILL
+
+``````
+docker container kill nameOfContainer
+``````
+
+List the networks
+
+``````
+docker network ls
+``````
+
+Delete container
+
+``````
+docker rm --force nameOfContainer
+``````
+
+To see on which ports an container is running use
+
+``````
+docker port static-sites
+``````
 
 
 ### Saving Docker image locally

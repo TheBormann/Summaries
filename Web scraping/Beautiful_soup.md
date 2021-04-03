@@ -3,12 +3,12 @@
 Beautiful soup is the most beginner friendly web scraper, but very limited.
 That's because it isn't a real web scraper, it's a module for pulling data out of HTML and XML file.
 The problem with Beautiful soup is, that it doesn't work on it's own. For this reason additional libraries
-are needed along side Beautiful soup:
+are needed alongside Beautiful soup:
 **Request** or urlib 2 as libraries for fetching the HTML and XML files from websites for APIs.
 Additionally to parse the files, **lxml's XML parser**, **lsml's HTML parser**, **HTML5lib** or **html.parser** could be used.
 Advantages of Beautiful soup are:
 
-1. Easy to understand and perfect for simple tasks where speed isn't that necessary
+1. Easy to understand and perfect for simple tasks, where speed isn't that necessary
 2. It's well documented and has a good community
 
 ## Example: Weather status
@@ -18,15 +18,16 @@ At first we need to inspect the website we want to fetch the data from.
 
 ![Google Weather website](./img/bs4/bs4_example_website.jpg "Google Weather website")
 
-When pressing ctr + shift + i, in the browser, the inspector wil open and it's possible to see the HTML code of the
-website. If you need more information about basic HTML manipulation, there is plenty resources online to choose from.
+When pressing **ctrl + shift + i**, in the browser, the inspector tab will open up and the HTML code is now visible.
+We can now inspect the structure of the website.
+
 ```
 <span class="wob_t" id="wob_tm" style="display:inline">17</span>
 ```
-This is the HTML element of the temperature, as type **span**, an special id, a class and some additional styling and 
+This is the HTML element of the temperature. The element is a **span** with a class, its own id, some additional styling and 
 the actual value (17). With all that information we can later specify what Beautiful soup should look for.
 Now to the actual code, firstly we need to import the request library to fetch the website than the beautiful soup library
-and the xml library to parse the HTML code.\
+and the xml library to parse the HTML code.
 Next we want to get the HTML file. For this we need to specify, with what type of browser the Request library should access
 the website (Specified as "USER_AGENT"), this must be saved in the header of the request.
 
@@ -62,6 +63,6 @@ Temperature: 16
 Precipitation: 3%
 Humidity: 68%
 ```
-This is pretty much how bs4 (Beautiful soup) works.
+This example covers the basic workflow of beautiful soup
 
 #### Next up: [Selenium](Selenium.md)
